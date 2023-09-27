@@ -1,4 +1,5 @@
 import re
+from collections import defaultdict
 
 def reflexive_closure(setA, relation):
     reflexive_sets = set([(x,x) for x in setA])
@@ -19,16 +20,22 @@ def symmetric_closure(relation):
     print("R^-1: ", set((symmetric_sets)))
     print("R U R^-1: ", set( (closure) ))
 
-def transitive_closure(relation):
-    closure = set(relation)
-    while True:
-        new_relation = set((x,w) for x,y in relation for q,w in relation if q == y)
-        temp_closure = closure | new_relation
-        if(temp_closure == closure):
-            break
-        closure = temp_closure
 
-    print("R^*: ",set((closure)))
+def transitive_closure(setA, relation):
+    edges = defaultdict(set)
+    # map from first element of input tuples to "reachable" second elements
+    for x, y in relation: edges[x].add(y)
+    print(f"R^1: ", set((k, i) for (k, v) in edges.items() for i in v))
+    print("")  
+    for j in range(len(setA)-1):
+        edges = defaultdict(set, (
+            (k, v.union(*(edges[i] for i in v)))
+            for (k, v) in edges.items()
+        ))
+        print(f"R^{j + 2}: ", set((k, i) for (k, v) in edges.items() for i in v))
+        print("")  
+    
+    print("R^*: ", set((k, i) for (k, v) in edges.items() for i in v))
 
 input_set = input("Please input the set on the form {1,2,3...}: ")
 input_relation = input("Please input the relation on the form {(1,1),(1,2)...}: ")
@@ -50,10 +57,13 @@ print("A: ", set(sorted(A)))
 print("R: ", set(sorted(R)))
 print("---------------------------------")
 
+print("Reflexive closure")
 reflexive_closure(A,R)
 print("---------------------------------")
 
+print("Symmetric closure")
 symmetric_closure(R)
 print("---------------------------------")
 
-transitive_closure(R)
+print("Transitive closure")
+transitive_closure(A,R)
